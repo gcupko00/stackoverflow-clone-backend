@@ -1,28 +1,44 @@
 var Question = require('./models/question');
+var cors = require('cors');
 
 module.exports = function(app) {
-	app.post('/post-question', function(req, res){
-		
-	});
-	
-	app.get('/question/:_id', function(req, res){
-		// Website you wish to allow to connect
-		res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
+	app.use(cors());
 
-		// Request methods you wish to allow
-		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-		// Request headers you wish to allow
-		res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-		// Set to true if you need the website to include cookies in the requests sent
-		// to the API (e.g. in case you use sessions)
-		// res.setHeader('Access-Control-Allow-Credentials', true);
-		// find by id
+	app.get('/question/:_id', function(req, res, next){
 		Question.findById(req.params._id, function (err, question){
 			if (err) return console.error(err);
 			res.send("{\"data\": " + JSON.stringify(question) + "}");
 		});
-		// res.send(question.title)
 	});
-}
+
+	app.get('/top-questions', function(req, res, next){
+		Question.find({}, function (err, questions) {
+			if (err) return console.error(err);
+			res.send("{\"data\": " + JSON.stringify(questions) + "}")
+        }).sort({'local.rating' : -1}).limit(4);
+	});
+
+	app.get('/questions/:page', function(req, res, next){
+		Question.find({}, function (err, questions) {
+			if (err) return console.error(err);
+            res.send("{\"data\": " + JSON.stringify(questions) + "}")
+		}).skip((req.params.page - 1)*10).limit(10);
+	});
+
+	app.post('/post-question', function(req, res, next){
+		var newQuestion = new Question();
+		newQuestion.local.title = req.body.title;
+        newQuestion.local.description = req.body.description;
+		newQuestion.local.tags = req.body.tags;
+		newQuestion.local.rating = req.body.rating;
+		newQuestion.local.answers = req.body.answers;
+		newQuestion.local.views = req.body.views;
+
+		newQuestion.save(function(err) {
+			if (err) throw err;
+		});
+
+		res.sendStatus(200);
+		// todo: when question page is finished at front end, redirect to posted question
+	});
+};
