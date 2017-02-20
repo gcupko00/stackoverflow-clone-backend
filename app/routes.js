@@ -25,6 +25,13 @@ module.exports = function(app) {
 		}).skip((req.params.page - 1)*10).limit(10);
 	});
 
+	app.get('/question-count', function(req, res, next) {
+        Question.count({}, function(err, count){
+            if (err) return console.error(err);
+            res.send("{ \"totalQuestionsCount\" : " + count + "}" );
+        });
+	});
+
 	app.post('/post-question', function(req, res, next){
 		var newQuestion = new Question();
 		newQuestion.local.title = req.body.title;
