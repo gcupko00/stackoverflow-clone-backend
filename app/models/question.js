@@ -6,8 +6,13 @@ var questionScheme = mongoose.Schema({
 		description: String,
 		tags: [String],
 		rating: Number,
-		answers: Number,
-		views: Number
+		answersCount: Number,
+		views: Number,
+		dateAdded: Date,
+		answers: [{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Answer'
+		}]
 	}
 });
 
