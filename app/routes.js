@@ -9,13 +9,14 @@ module.exports = function(app) {
 	app.get('/question/:_id', function(req, res, next) {
 		Question.findById(req.params._id, function (err, question){
             if (err) return console.error(err);
-            question.local.views = question.local.views + 1;
-            question.save(function(err, updatedQuestion) {
+            question.local.views++;
+            question.save();
+		}).populate('local.answers')
+			.exec(function(err, q) {
             	if (err) return console.error(err);
                 res.header('Content-Type', 'application/json');
-                res.send("{\"data\": " + JSON.stringify(updatedQuestion) + "}");
+                res.send("{\"data\": " + JSON.stringify(q) + "}");
 			});
-		});
 	});
 
 	app.get('/top-questions', function(req, res, next) {
@@ -70,7 +71,16 @@ module.exports = function(app) {
         }
 	});
 
-	//todo: integrate with get question
+	app.put('/question/:_id/rate', function(req, res, next) {
+        Question.findById(req.params._id, function (err, question){
+            if (err) return console.error(err);
+            if (req.body.upDown >= 0) question.local.rating++;
+            else question.local.rating--;
+            question.save();
+            res.sendStatus(200);
+        });
+	});
+
 	app.get('/answers/:_id', function(req, res, next) {
         Question.findById(req.params._id)
 			.populate('local.answers')
@@ -79,24 +89,6 @@ module.exports = function(app) {
 				res.header('Content-Type', 'application/json');
 				res.send("{\"data\": " + JSON.stringify(q.local.answers) + "}");
             });
-
-
-		// Question.findById(req.params._id, function (err, question){
-        //     if (err) return console.error(err);
-        //
-        //     var answers = [];
-        //
-        //     question.local.answers.forEach(function(answerId) {
-        //     	Answer.findById(answerId, function (err, answer) {
-        //             if (err) return console.error(err);
-        //             answers.push(answer);
-			// 	});
-        //         console.log(answers);
-			// });
-        //
-        //     res.header('Content-Type', 'application/json');
-        //     res.send("{\"data\": " + JSON.stringify(answers) + "}");
-        // });
     });
 
 	app.post('/post-question', function(req, res, next) {
@@ -123,25 +115,20 @@ module.exports = function(app) {
 
             var newAnswer = new Answer({
             	'_question': question._id,
-            	'local.text': req.body.text,
-				'local.rating': 0
+            	'text': req.body.text,
+				'rating': 0,
+				'dateAdded': Date.now()
 			});
 
-            newAnswer.populate('_question');
-
-            newAnswer.save(function(err, answer) {
-                if (err) return console.error(err);
-            });
+            newAnswer.save();
 
             question.local.answers.push(newAnswer._id);
+            question.local.answersCount++;
 
-            question.populate('local.answers');
+            question.save();
 
-            question.save(function(err, updatedQuestion) {
-                if (err) return console.error(err);
-                res.header('Content-Type', 'application/json');
-                res.send("{\"data\": " + JSON.stringify(updatedQuestion) + "}");
-            });
+            res.header('Content-Type', 'application/json');
+            res.send("{\"data\": " + JSON.stringify(newAnswer) + "}");
         });
     });
 

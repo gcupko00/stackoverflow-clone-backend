@@ -5,11 +5,9 @@ var answerScheme = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Question'
     },
-    local: {
-        text: String,
-        rating: Number,
-        dateAdded: Date
-    }
+    text: String,
+    rating: Number,
+    dateAdded: Date
 });
 
 module.exports = mongoose.model('Answer', answerScheme);/**
