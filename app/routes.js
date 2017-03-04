@@ -2,6 +2,7 @@ var Question = require('./models/question');
 var Answer = require('./models/answer');
 var User = require('./models/user');
 var cors = require('cors');
+var jwt = require('../server.js');
 
 module.exports = function(app) {
 	app.use(cors());
@@ -93,13 +94,13 @@ module.exports = function(app) {
 
 	app.post('/post-question', function(req, res, next) {
 		var newQuestion = new Question();
-		newQuestion.local.title = req.body.title;
-        newQuestion.local.description = req.body.description;
-		newQuestion.local.tags = req.body.tags;
-		newQuestion.local.rating = req.body.rating;
+		newQuestion.local.title        = req.body.title;
+        newQuestion.local.description  = req.body.description;
+		newQuestion.local.tags         = req.body.tags;
+		newQuestion.local.rating       = req.body.rating;
 		newQuestion.local.answersCount = req.body.answersCount;
-		newQuestion.local.views = req.body.views;
-		newQuestion.local.dateAdded = Date.now();
+		newQuestion.local.views        = req.body.views;
+		newQuestion.local.dateAdded    = Date.now();
 
 		newQuestion.save(function(err) {
 			if (err) throw err;
@@ -132,19 +133,47 @@ module.exports = function(app) {
         });
     });
 
-	app.post('/signup', function(req, res, next) {
+	app.post('/signup', function(req, res) {
 		var newUser = new User();
-		newUser.local.username = req.body.username;
-        newUser.local.email = req.body.email;
-        newUser.local.password = req.body.password;
+		newUser.local.username   = req.body.username;
+        newUser.local.email      = req.body.email;
+        newUser.local.password   = req.body.password;
         newUser.local.reputation = 0;
 
-        console.log(newUser);
+        User.findOne( { $or: [ {'local.email'    : newUser.local.email},
+                               {'local.username' : newUser.local.username}]}, function (err, user) {
+            if (user) {
+                console.log('Username or email already taken');
+                res.status(406).json('USER_EXISTS');
+                return;
+            } else {
+                newUser.save(function(err) {
+                    console.log('Saving user:\n' + newUser);
+                    if (err) throw err;
+                });
 
-        newUser.save(function(err) {
-            if (err) throw err;
+                var token = jwt.sign({ username: req.body.username }, 'test');
+                res.status(200).json(token);
+            }
         });
+    });
 
-        res.send("{\"data\": " + JSON.stringify(newUser) + "}");
+    app.post('/login', function(req, res) {
+        User.findOne({ 'local.email' : req.body.email}, function (err, user) {
+            if (!user) {
+                console.log('Cannot find user: ');
+                res.status(401).json();
+                return;
+            } else if (user.local.password !== req.body.password) {
+                console.log('Incorrect Password!');
+                res.status(401).json();
+                return;
+            }
+
+            console.log('Correct Password!');
+
+            var token = jwt.sign({ username: user.local.username }, 'test');
+            res.status(200).json({token : token, username : user.local.username});
+        });
     });
 };

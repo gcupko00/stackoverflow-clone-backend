@@ -10,6 +10,8 @@ var answerScheme = mongoose.Schema({
     dateAdded: Date
 });
 
-module.exports = mongoose.model('Answer', answerScheme);/**
+module.exports = mongoose.model('Answer', answerScheme);
+
+/**
  * Created by Gligorije on 26.2.2017..
  */
