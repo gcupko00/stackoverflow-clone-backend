@@ -5,6 +5,10 @@ var answerScheme = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Question'
     },
+    _user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     text: String,
     rating: Number,
     dateAdded: Date

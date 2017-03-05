@@ -43,13 +43,13 @@ module.exports = function(app) {
             }).sort({'local.rating' : -1}).skip((req.params.page - 1)*10).limit(10);
 		}
         else if (req.params.criteria == 'unanswered') {
-            Question.find({}, function (err, questions) {
+            Question.find({'local.answersCount' : 0}, function (err, questions) {
                 if (err) return console.error(err);
                 res.send("{\"data\": " + JSON.stringify(questions) + "}")
             }).sort({'local.date' : -1}).skip((req.params.page - 1)*10).limit(10);
         }
         else {
-            Question.find({'local.answers' : 0}, function (err, questions) {
+            Question.find({}, function (err, questions) {
                 if (err) return console.error(err);
                 res.send("{\"data\": " + JSON.stringify(questions) + "}")
             }).skip((req.params.page - 1)*10).limit(10);
@@ -59,7 +59,7 @@ module.exports = function(app) {
 	app.get('/question-count/:criteria', function(req, res, next) {
         res.header('Content-Type', 'application/json');
 		if(req.params.criteria == 'unanswered') {
-            Question.count({'local.answers' : 0}, function (err, count) {
+            Question.count({'local.answersCount' : 0}, function (err, count) {
                 if (err) return console.error(err);
                 res.send("{ \"totalQuestionsCount\" : " + count + "}");
             });
@@ -90,6 +90,16 @@ module.exports = function(app) {
 				res.header('Content-Type', 'application/json');
 				res.send("{\"data\": " + JSON.stringify(q.local.answers) + "}");
             });
+    });
+
+    app.put('/answers/:_id/rate', function(req, res, next) {
+        Answer.findById(req.params._id, function (err, answer){
+            if (err) return console.error(err);
+            if (req.body.upDown >= 0) answer.rating++;
+            else answer.rating--;
+            answer.save();
+            res.sendStatus(200);
+        });
     });
 
 	app.post('/post-question', function(req, res, next) {
@@ -173,7 +183,7 @@ module.exports = function(app) {
             console.log('Correct Password!');
 
             var token = jwt.sign({ username: user.local.username }, 'test');
-            res.status(200).json({token : token, username : user.local.username});
+            res.status(200).json({ token : token, username : user.local.username, _id: user._id });
         });
     });
 };

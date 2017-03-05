@@ -6,7 +6,15 @@ var userScheme = mongoose.Schema({
         email: String,
         password: String,
         imageUrl: String,
-        reputation: Number
+        reputation: Number,
+        answers: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Answer'
+        }],
+        questions: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Question'
+        }]
     }
 });
 
