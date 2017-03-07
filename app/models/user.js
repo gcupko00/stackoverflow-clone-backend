@@ -4,7 +4,7 @@ var userScheme = mongoose.Schema({
     local: {
         username: String,
         email: String,
-        password: String,
+        password: {type: String, select: false},
         imageUrl: String,
         reputation: Number,
         answers: [{
@@ -12,6 +12,14 @@ var userScheme = mongoose.Schema({
             ref: 'Answer'
         }],
         questions: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Question'
+        }],
+        ratedAnswers: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Question'
+        }],
+        ratedQuestions: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Question'
         }]

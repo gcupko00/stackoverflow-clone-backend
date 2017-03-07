@@ -12,7 +12,7 @@ module.exports = function(app) {
             if (err) return console.error(err);
             question.local.views++;
             question.save();
-		}).populate('local.answers')
+		}).populate('local.answers').populate('local.user')
 			.exec(function(err, q) {
             	if (err) return console.error(err);
                 res.header('Content-Type', 'application/json');
@@ -34,7 +34,7 @@ module.exports = function(app) {
             Question.find({}, function (err, questions) {
                 if (err) return console.error(err);
                 res.send("{\"data\": " + JSON.stringify(questions) + "}")
-            }).sort({'local.date' : -1}).skip((req.params.page - 1)*10).limit(10);
+            }).sort({'local.dateAdded' : -1}).skip((req.params.page - 1)*10).limit(10);
 		}
 		else if (req.params.criteria == 'top') {
             Question.find({}, function (err, questions) {
@@ -75,6 +75,13 @@ module.exports = function(app) {
 	app.put('/question/:_id/rate', function(req, res, next) {
         Question.findById(req.params._id, function (err, question){
             if (err) return console.error(err);
+
+            User.findById(req.body.user, function (err, user) {
+                if (err) return console.error(err);
+                user.local.ratedQuestions.push(question._id);
+                user.save();
+            });
+
             if (req.body.upDown >= 0) question.local.rating++;
             else question.local.rating--;
             question.save();
@@ -110,6 +117,7 @@ module.exports = function(app) {
 		newQuestion.local.rating       = req.body.rating;
 		newQuestion.local.answersCount = req.body.answersCount;
 		newQuestion.local.views        = req.body.views;
+        newQuestion.local.user         = req.body.user._id;
 		newQuestion.local.dateAdded    = Date.now();
 
 		newQuestion.save(function(err) {
@@ -126,6 +134,7 @@ module.exports = function(app) {
 
             var newAnswer = new Answer({
             	'_question': question._id,
+                '_user': req.body.user._id,
             	'text': req.body.text,
 				'rating': 0,
 				'dateAdded': Date.now()
@@ -169,7 +178,7 @@ module.exports = function(app) {
     });
 
     app.post('/login', function(req, res) {
-        User.findOne({ 'local.email' : req.body.email}, function (err, user) {
+        User.findOne({ 'local.email' : req.body.email}, '+password', function (err, user) {
             if (!user) {
                 console.log('Cannot find user: ');
                 res.status(401).json();
