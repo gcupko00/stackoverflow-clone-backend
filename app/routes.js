@@ -78,7 +78,7 @@ module.exports = function(app) {
 
             User.findById(req.body.user, function (err, user) {
                 if (err) return console.error(err);
-                user.local.ratedQuestions.push(question._id);
+                user.ratedQuestions.push(question._id);
                 user.save();
             });
 
@@ -120,8 +120,15 @@ module.exports = function(app) {
         newQuestion.local.user         = req.body.user._id;
 		newQuestion.local.dateAdded    = Date.now();
 
-		newQuestion.save(function(err) {
+		newQuestion.save(function(err, q) {
 			if (err) throw err;
+            else {
+                User.findById(req.body.user._id, function (err, user) {
+                    if (err) return console.error(err);
+                    user.questions.push(q._id);
+                    user.save();
+                });
+            }
 		});
 
         res.header('Content-Type', 'application/json');
@@ -154,13 +161,13 @@ module.exports = function(app) {
 
 	app.post('/signup', function(req, res) {
 		var newUser = new User();
-		newUser.local.username   = req.body.username;
-        newUser.local.email      = req.body.email;
-        newUser.local.password   = req.body.password;
-        newUser.local.reputation = 0;
+		newUser.username   = req.body.username;
+        newUser.email      = req.body.email;
+        newUser.password   = req.body.password;
+        newUser.reputation = 0;
 
-        User.findOne( { $or: [ {'local.email'    : newUser.local.email},
-                               {'local.username' : newUser.local.username}]}, function (err, user) {
+        User.findOne( { $or: [ {'email'    : newUser.email},
+                               {'username' : newUser.username}]}, function (err, user) {
             if (user) {
                 console.log('Username or email already taken');
                 res.status(406).json('USER_EXISTS');
@@ -178,12 +185,12 @@ module.exports = function(app) {
     });
 
     app.post('/login', function(req, res) {
-        User.findOne({ 'local.email' : req.body.email}, '+password', function (err, user) {
+        User.findOne({ 'email' : req.body.email}, '+password', function (err, user) {
             if (!user) {
                 console.log('Cannot find user: ');
                 res.status(401).json();
                 return;
-            } else if (user.local.password !== req.body.password) {
+            } else if (user.password !== req.body.password) {
                 console.log('Incorrect Password!');
                 res.status(401).json();
                 return;
@@ -191,8 +198,8 @@ module.exports = function(app) {
 
             console.log('Correct Password!');
 
-            var token = jwt.sign({ username: user.local.username }, 'test');
-            res.status(200).json({ token : token, username : user.local.username, _id: user._id });
+            var token = jwt.sign({ username: user.username }, 'test');
+            res.status(200).json({ token : token, user : user });
         });
     });
 };
