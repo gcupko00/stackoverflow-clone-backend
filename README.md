@@ -12,6 +12,8 @@ Back end for [StackoverflowClone](https://github.com/sklavko/stackoverflow-clone
 
 * [Mongoose ODM](http://mongoosejs.com/)
 
+* [JSON Web Token](https://jwt.io/)
+
 ### [Front end](https://github.com/sklavko/stackoverflow-clone)
 
 ## Made by

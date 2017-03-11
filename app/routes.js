@@ -165,6 +165,7 @@ module.exports = function(app) {
         newUser.email      = req.body.email;
         newUser.password   = req.body.password;
         newUser.reputation = 0;
+        newUser.imageUrl   = "/assets/profile.png"
 
         User.findOne( { $or: [ {'email'    : newUser.email},
                                {'username' : newUser.username}]}, function (err, user) {
@@ -201,5 +202,27 @@ module.exports = function(app) {
             var token = jwt.sign({ username: user.username }, 'test');
             res.status(200).json({ token : token, user : user });
         });
+    });
+
+    app.post('/updateImgUrl', function(req, res) {
+        var query = { username: req.body.username };
+        var update = { imageUrl: req.body.imgUrl };
+        var options = { new: false };
+        User.findOneAndUpdate(query, update, options, function (err, user) {
+            if (err) return res.send(500, { error: err });
+            return res.status(200).json({ user : user });
+        });
+/*
+        var query = {'username':req.body.username};
+        req.body.imgUrl = req.user.username;
+        User.findAndModify(query, req.newData, function(err, doc){
+            if (err) return res.send(500, { error: err });
+            return res.send(200, "succesfully saved");
+        });
+
+        db.getCollection('users').findAndModify({
+            query: { username: "karlo" },
+            update: { $set: { imageUrl: "aaaa" } }
+        });*/
     });
 };
