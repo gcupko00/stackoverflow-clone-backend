@@ -18,11 +18,24 @@ mongoose.connection
 app.use(bodyParser.json());
 
 /* Regex doesn't use quotes and is required for '/question/:page' and similar */
-var noJwtPaths = ['/login', '/signup', '/top-questions', /\/questions\/*/, /\/question\/*/,
-	'/question-count', /\/answers\/*/, /\/questions\/*\/*/, '/answers'];
+var noJwtPaths = [
+	'/login',
+	'/signup',
+	'/top-questions',
+	/\/questions\/*/,
+	/\/questions\/*\/*/,
+	/\/question\/*/,
+	'/question-count',
+	/\/answers\/*/,
+	'/answers',
+	/\/tags\/*/,
+    /\/tag\/*/];
 app.use(expressJWT({ secret: 'test' }).unless({ path: noJwtPaths}));
 
 module.exports = jwt;
-require('./app/routes.js')(app);
+require('./app/controllers/questions')(app);
+require('./app/controllers/answers')(app);
+require('./app/controllers/tags')(app);
+require('./app/controllers/users')(app);
 
 app.listen(port);
