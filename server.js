@@ -29,7 +29,9 @@ var noJwtPaths = [
 	/\/answers\/*/,
 	'/answers',
 	/\/tags\/*/,
-    /\/tag\/*/];
+    /\/tag\/*/,
+    /\/search\/*/,
+    /\/short-search\/*/];
 app.use(expressJWT({ secret: 'test' }).unless({ path: noJwtPaths}));
 
 module.exports = jwt;
@@ -37,5 +39,6 @@ require('./app/controllers/questions')(app);
 require('./app/controllers/answers')(app);
 require('./app/controllers/tags')(app);
 require('./app/controllers/users')(app);
+require('./app/controllers/search')(app);
 
 app.listen(port);

@@ -22,6 +22,6 @@ var userScheme = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Question'
     }]
-});
+}).index({ 'username': 'text', 'email': 'text' });
 
 module.exports = mongoose.model('User', userScheme);

@@ -8,6 +8,6 @@ var tagScheme = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Question'
     }]
-});
+}).index({ 'name': 'text', 'description': 'text' });
 
 module.exports = mongoose.model('Tag', tagScheme);

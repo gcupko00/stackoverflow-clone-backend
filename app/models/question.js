@@ -18,6 +18,6 @@ var questionScheme = mongoose.Schema({
             ref: 'User'
         }
 	}
-});
+}).index({ 'local.title': 'text', 'local.description': 'text' });
 
 module.exports = mongoose.model('Question', questionScheme);
