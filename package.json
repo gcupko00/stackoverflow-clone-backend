@@ -14,7 +14,8 @@
     "cors": "^2.8.1",
     "express": "^4.14.1",
     "express-jwt": "^5.1.0",
-    "mongoose": "^4.8.3"
+    "mongoose": "^4.8.3",
+    "sha256": "^0.2.0"
   },
   "devDependencies": {
     "lite-server": "^2.2.2"
